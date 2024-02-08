@@ -419,6 +419,8 @@ class MainActivity :
         updateSystemColors()
 
         mediaRouter = MediaRouter.getInstance(this)
+
+        ThemeSettingObserver(theme, settings.theme, this).observeThemeChanges()
     }
 
     private fun resetEoYBadgeIfNeeded() {
@@ -807,7 +809,6 @@ class MainActivity :
                     if (state.shouldShowWhatsNew) {
                         showBottomSheet(
                             fragment = WhatsNewFragment(),
-                            swipeEnabled = false,
                         )
                         viewModel.onWhatsNewShown()
                     }

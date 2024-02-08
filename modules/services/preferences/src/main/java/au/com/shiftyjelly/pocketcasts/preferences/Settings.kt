@@ -14,15 +14,16 @@ import au.com.shiftyjelly.pocketcasts.preferences.model.AppIconSetting
 import au.com.shiftyjelly.pocketcasts.preferences.model.AutoAddUpNextLimitBehaviour
 import au.com.shiftyjelly.pocketcasts.preferences.model.AutoArchiveAfterPlayingSetting
 import au.com.shiftyjelly.pocketcasts.preferences.model.AutoArchiveInactiveSetting
+import au.com.shiftyjelly.pocketcasts.preferences.model.AutoPlaySource
 import au.com.shiftyjelly.pocketcasts.preferences.model.BadgeType
 import au.com.shiftyjelly.pocketcasts.preferences.model.BookmarksSortTypeDefault
 import au.com.shiftyjelly.pocketcasts.preferences.model.BookmarksSortTypeForPodcast
 import au.com.shiftyjelly.pocketcasts.preferences.model.HeadphoneAction
-import au.com.shiftyjelly.pocketcasts.preferences.model.LastPlayedList
-import au.com.shiftyjelly.pocketcasts.preferences.model.NewEpisodeNotificationActionSetting
+import au.com.shiftyjelly.pocketcasts.preferences.model.NewEpisodeNotificationAction
 import au.com.shiftyjelly.pocketcasts.preferences.model.NotificationVibrateSetting
 import au.com.shiftyjelly.pocketcasts.preferences.model.PlayOverNotificationSetting
 import au.com.shiftyjelly.pocketcasts.preferences.model.PodcastGridLayoutType
+import au.com.shiftyjelly.pocketcasts.preferences.model.ShelfItem
 import au.com.shiftyjelly.pocketcasts.preferences.model.ThemeSetting
 import au.com.shiftyjelly.pocketcasts.utils.featureflag.UserTier
 import io.reactivex.Observable
@@ -42,6 +43,7 @@ interface Settings {
         const val SERVER_LIST_URL = BuildConfig.SERVER_LIST_URL
         const val SERVER_LIST_HOST = BuildConfig.SERVER_LIST_HOST
         const val WP_COM_API_URL = "https://public-api.wordpress.com"
+        const val SLUMBER_STUDIOS_PROMO_URL = "https://slumberstudios.com/pocketcasts"
 
         const val SHARING_SERVER_SECRET = BuildConfig.SHARING_SERVER_SECRET
         val SETTINGS_ENCRYPT_SECRET = BuildConfig.SETTINGS_ENCRYPT_SECRET.toCharArray()
@@ -58,7 +60,7 @@ interface Settings {
 
         const val CHROME_CAST_APP_ID = "2FA4D21B"
 
-        const val WHATS_NEW_VERSION_CODE = 9116
+        const val WHATS_NEW_VERSION_CODE = 9117
 
         const val DEFAULT_MAX_AUTO_ADD_LIMIT = 100
         const val MAX_DOWNLOAD = 100
@@ -227,8 +229,9 @@ interface Settings {
 
     val selectPodcastSortTypeObservable: Observable<PodcastsSortType>
     val refreshStateObservable: Observable<RefreshState>
-    val shelfItemsObservable: Observable<List<String>>
     val multiSelectItemsObservable: Observable<List<Int>>
+
+    val shelfItems: UserSetting<List<ShelfItem>>
 
     fun getVersion(): String
     fun getVersionCode(): Int
@@ -327,7 +330,7 @@ interface Settings {
     fun showPlayedEpisodes(): Boolean
 
     val showArtworkOnLockScreen: UserSetting<Boolean>
-    val newEpisodeNotificationActions: UserSetting<NewEpisodeNotificationActionSetting>
+    val newEpisodeNotificationActions: UserSetting<List<NewEpisodeNotificationAction>>
 
     val autoArchiveIncludesStarred: UserSetting<Boolean>
     val autoArchiveAfterPlaying: UserSetting<AutoArchiveAfterPlayingSetting>
@@ -352,6 +355,7 @@ interface Settings {
     fun getPodcastSearchDebounceMs(): Long
     fun getEpisodeSearchDebounceMs(): Long
     fun getReportViolationUrl(): String
+    fun getSlumberStudiosPromoCode(): String
     val podcastGroupingDefault: UserSetting<PodcastGrouping>
 
     val marketingOptIn: UserSetting<Boolean>
@@ -382,7 +386,6 @@ interface Settings {
     fun getCustomStorageLimitGb(): Long
     fun getCancelledAcknowledged(): Boolean
     fun setCancelledAcknowledged(value: Boolean)
-    fun setShelfItems(items: List<String>)
     fun getSeenPlayerTour(): Boolean
     fun setSeenPlayerTour(value: Boolean)
     fun setSeenUpNextTour(value: Boolean)
@@ -446,7 +449,12 @@ interface Settings {
     fun setFullySignedOut(boolean: Boolean)
     fun getFullySignedOut(): Boolean
 
-    val lastLoadedFromPodcastOrFilterUuid: UserSetting<LastPlayedList>
+    val lastAutoPlaySource: UserSetting<AutoPlaySource>
+
+    // This property is used for determining which source should be used for auto play
+    // We don't want to always change the auto play source but we want to always track it
+    // in case we need to change it.
+    val trackingAutoPlaySource: UserSetting<AutoPlaySource>
 
     // It would be better to have this be a UserSetting<ThemeType>, but that
     // is not easy due to the way our modules are structured.
